@@ -45,7 +45,7 @@ copyright = u'2010, Matthew "LeafStorm" Frazier'
 # built documents.
 #
 # The short X.Y version.
-version = '0.0.4'
+version = '0.0.5'
 # The full version, including alpha/beta/rc tags.
 release = '0.1'
 

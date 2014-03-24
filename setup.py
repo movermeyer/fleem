@@ -19,7 +19,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Fleem',
-    version='0.0.4',
+    version='0.0.5',
     url='http://github.com/thrisp/fleem',
     license='MIT',
     author='thrisp/hurrata',
