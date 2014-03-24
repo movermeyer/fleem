@@ -2,7 +2,7 @@ from unittest import TestCase
 from os.path import join, dirname
 from flask import Flask
 from flask_fleem import Fleem
-
+from flask_fleem.theme_manager import ThemeManager
 
 class FleemTest(TestCase):
     TESTS = dirname(__file__)
