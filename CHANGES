@@ -3,6 +3,13 @@ Fleem Changelog
 
 Here you can see the full list of changes between each Fleem release.
 
+Version 0.0.5
+-------------
+Released March 24th 2014
+
+- update dependencies to include pyyaml
+
+
 Version 0.0.4
 -------------
 
