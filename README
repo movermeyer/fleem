@@ -1,4 +1,17 @@
 Fleem
+=====
+
+.. image:: https://pypip.in/v/Flask-Fleem/badge.png
+    :target: https://pypi.python.org/pypi/Flask-Fleem/
+    :alt: Latest Version
+
+.. image:: https://pypip.in/d/Flask-Fleem/badge.png
+    :target: https://pypi.python.org/pypi//Flask-Fleem/
+    :alt: Downloads
+
+.. image:: https://pypip.in/license/Flask-Fleem/badge.png
+    :target: https://pypi.python.org/pypi/Flask-Fleem/
+    :alt: License
 
 A fork of flask-themes with a few differences:
 
