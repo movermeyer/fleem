@@ -33,7 +33,7 @@ class Theme(object):
         # The theme's human readable name, as given in info.yaml.
         self.name = i.pop('name', 'No name provided')
 
-        # The application identifier given in the theme's info.yaml.
+        # The application name given in the theme's info.yaml.
         self.application = i.pop('application', 'No application provided')
 
         # The theme's identifier. In most situations should match the name of

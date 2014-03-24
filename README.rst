@@ -1,6 +1,8 @@
 Fleem
 =====
 
+.. image:: https://secure.travis-ci.org/thrisp/flask-fleem.png?branch=develop
+
 .. image:: https://pypip.in/v/Flask-Fleem/badge.png
     :target: https://pypi.python.org/pypi/Flask-Fleem/
     :alt: Latest Version

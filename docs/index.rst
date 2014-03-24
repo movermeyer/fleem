@@ -1,9 +1,9 @@
 ============
-Flask-Themes
+Flask-Fleem
 ============
-.. currentmodule:: flaskext.themes
+.. currentmodule:: flask_fleem
 
-Flask-Themes makes it easy for your application to support a wide range of
+Flask-Fleem makes it easy for your application to support a wide range of
 appearances.
 
 .. contents::
@@ -20,17 +20,15 @@ should look something like this:
 .. sourcecode:: text
 
     my_theme/
-        info.json
-        license.txt
+        info.yaml
         templates/
             layout.html
             index.html
         static/
             style.css
 
-The ``info.json`` file contains the theme's metadata, so that the application
-can provide a nice switching interface if necessary. ``license.txt`` is
-optional and contains the full text of the theme's license. ``static`` is
+The ``info.yaml`` file contains the theme's metadata, so that the application
+can provide a nice switching interface if necessary. ``static`` is
 served directly to clients, and ``templates`` contains the Jinja2 template
 files.
 
@@ -80,89 +78,42 @@ function:
 .. _its documentation: http://jinja.pocoo.org/2/documentation/templates
 
 
-``info.json`` Fields
+``info.yaml`` Fields
 --------------------
-``application`` : required
-    This is the application's identifier. Exactly what identifier you need to
-    use varies between applications.
+``name`` : required
+    This is the full human readable name of the theme
 
 ``identifier`` : required
     The theme's identifier. It should be a Python identifier (starts with a
     letter or underscore, the rest can be letters, underscores, or numbers)
     and should match the name of the theme's folder.
 
-``name`` : required
-    A human-readable name for the theme.
-
-``author`` : required
-    The name of the theme's author, that is, you. It does not have to include
-    an e-mail address, and should be displayed verbatim.
-
-``description``
-    A description of the theme in a few sentences. If you can write multiple
-    languages, you can include additional fields in the form
-    ``description_lc``, where ``lc`` is a two-letter language code like ``es``
-    or ``de``. They should contain the description, but in the indicated
-    language.
-
-``website``
-    The URL of the theme's Web site. This can be a Web site specifically for
-    this theme, Web site for a collection of themes that includes this theme,
-    or just the author's Web site.
-
-``license``
-    A simple phrase indicating your theme's license, like ``GPL``,
-    ``MIT/X11``, ``Public Domain``, or ``Creative Commons BY-SA 3.0``. You
-    can put the full license's text in the ``license.txt`` file.
-
-``license_url``
-    If you don't want to include the full text in the ``license.txt`` file,
-    you can include a URL for a Web site where the text can be viewed. This is
-    good for long licenses like the GPL or Creative Commons licenses.
-
-``preview``
-    A preview image for the theme. This should be the filename for an image
-    within the ``static`` directory.
-
-``doctype``
-    The version of HTML used by the theme. It can be ``html4``, ``html5``, or
-    ``xhtml``. The application can use this to do things like switch the
-    output format of a markup generator. (The default if this is left out is
-    ``html5`` to be safe. HTML5 is used by the majority of Flask users, so
-    it's best to use it.)
-
-``options``
-    If this is given, it should be a dictionary (object in JSON parlance)
-    containing application-specific options. You will need to check the
-    application's docs to see what options it uses. (For example, an
-    application like a pastebin or wiki that highlights source code may
-    want the theme to specify a default `Pygments`_ style in the options.)
-
+``application`` : required
+    The application identifier for the application the theme belongs to.
 
 .. _Pygments: http://pygments.org/
 
-Tips for Theme Writers
-----------------------
-- Always specify a doctype.
-- Remember that you have to use double-quotes with strings in JSON.
-- Look at the non-theme templates provided with the application. See how they
-  interact.
-- Remember that most of the time, you can alter the application's appearance
-  completely just by changing the layout template and the style.
 
+Using the Extension in Your Application 
+=======================================
+To use with your application immediately:
 
-Using Themes in Your Application
-================================
-To set up your application to use themes, you need to use the
-`setup_themes` function. It doesn't rely on your application already being
-configured, so you can call it whenever is convenient. It does three things:
+    app = Flask(__name__)
+    Fleem(app=app)
+    
+To use with an application at some further point:
 
-* Adds a `ThemeManager` instance to your application as ``app.theme_manager``.
-* Registers the `theme` and `theme_static` globals with the Jinja2
-  environment.
-* Registers the `_themes` module or blueprint (depending on the Flask version)
-  to your application, by default with the URL prefix ``/_themes`` (you can
-  change it).
+    app = Flask(__name__)
+    f = Fleem(options)
+    f.init_app(app=app)
+    
+Options that may be passed to the Fleem constructor:
+
+    loaders: default is None, and uses extension defaults
+    app_identifier: default is None
+    manager_cls: default is `ThemeManager`
+    theme_url_prefix: default is "/_themes"
+
 
 .. warning::
 
@@ -247,29 +198,20 @@ renders the template. For example::
    Make sure that you *only* get `Theme` instances from the theme manager. If
    you need to create a `Theme` instance manually outside of a theme loader,
    that's a sign that you're doing it wrong. Instead, write a loader that can
-   load that theme and pass it to `setup_themes`, because if the theme is not
+   load that theme and pass it to the extension setup, because if the theme is not
    loaded by the manager, then its templates and static files won't be
    available, which will usually lead to your application breaking.
-
-
-Tips for Application Programmers
---------------------------------
-- Provide default templates, preferably for everything. Use simple, unstyled
-  HTML.
-- If you find yourself repeating design elements, put them in a macro in a
-  separate template. That way, theme authors can override them more easily.
-- Put class names or IDs on any elements that the theme author may want to
-  style. (And by that I mean all of them.) That way they won't have to
-  override the template unnecessarily if all they want to do is right-align
-  the meta information.
 
 
 API Documentation
 =================
 This API documentation is automatically generated from the source code.
 
+.. autoclass:: Fleem
+    :members:
+
 .. autoclass:: Theme
-   :members:
+    :members:
 
 .. autofunction:: setup_themes
 
