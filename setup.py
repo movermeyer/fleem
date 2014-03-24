@@ -30,7 +30,8 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=['Flask>=0.9',
-                      'Flask-Assets>=0.8'],
+                      'Flask-Assets>=0.8',
+                      'PyYAML>=3.10'],
     test_suite='nose.collector',
     tests_require=[
         'nose',
