@@ -4,13 +4,13 @@ from flask import current_app, _app_ctx_stack
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from werkzeug import cached_property, LocalProxy
 from flask_assets import Bundle
-from ._compat import implements_to_string
+from .compat import implements_to_string
 
 _fleem = LocalProxy(lambda: current_app.extensions['fleem_manager'])
 
 class Theme(object):
     """
-    This contains a theme's metadata.
+    Contains a theme's metadata.
 
     :param path: The path to the theme directory.
     """
@@ -30,16 +30,14 @@ class Theme(object):
                                  {}
                                  """).format(i)
 
-        #: The theme's human readable name, as given in info.yaml.
+        # The theme's human readable name, as given in info.yaml.
         self.name = i.pop('name', 'No name provided')
 
-        #: The application identifier given in the theme's info.yaml. Your
-        #: application will probably want to validate it.
+        # The application identifier given in the theme's info.yaml.
         self.application = i.pop('application', 'No application provided')
 
-        #: The theme's identifier. This is an actual Python identifier,
-        #: and in most situations should match the name of the directory the
-        #: theme is in.
+        # The theme's identifier. In most situations should match the name of
+        # the directory the theme is in.
         self.identifier = i.pop('identifier', 'No identifier provided')
 
         for k,v in iter(i.items()):
@@ -87,22 +85,17 @@ class Theme(object):
 
     @cached_property
     def static_path(self):
-        """
-        The absolute path to the theme's static files directory.
-        """
+        """The absolute path to the theme's static files directory."""
         return os.path.join(self.path, 'static')
 
     @cached_property
     def templates_path(self):
-        """
-        The absolute path to the theme's templates directory.
-        """
+        """The absolute path to the theme's templates directory."""
         return os.path.join(self.path, 'templates')
 
     @cached_property
     def jinja_loader(self):
-        """
-        This is a Jinja2 template loader that loads templates from the theme's
+        """This is a Jinja2 template loader that loads templates from the theme's
         ``templates`` directory.
         """
         return FileSystemLoader(self.templates_path)
@@ -111,16 +104,11 @@ class Theme(object):
         return "{}_{}".format(self.identifier, asset_type)
 
     def __repr__(self):
-        return "<Theme: {} | app_id: {} | id: {} >".format(self.name,
-                                                           self.application,
-                                                           self.identifier)
+        return "<Theme: {} | app_id: {} | id: {} >".format(self.name, self.application, self.identifier)
 
 
 class ThemeTemplateLoader(BaseLoader):
-    """
-    This is a template loader that loads templates from the current app's
-    loaded themes.
-    """
+    """Loads templates from the current app's loaded themes."""
     def __init__(self):
         BaseLoader.__init__(self)
 

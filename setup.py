@@ -2,7 +2,7 @@
 Fleem
 ------------
 Fleem provides infrastructure for theming support in Flask
-applications. It takes care of:
+applications:
 
 - Loading themes
 - Rendering templates from themes
@@ -12,32 +12,25 @@ applications. It takes care of:
 Links
 `````
 * `documentation <http://packages.python.org/>`_
-* `development version
-  <http://>`_
-
-
+* `issues <https://github.com/thrisp/fleem/issues>`_
+* `source version <https://github.com/thrisp/fleem>`_
 """
-from flask_fleem import __version__
 from setuptools import setup
-import sys
-requires = ['Flask>=0.9',
-            'Flask-Assets>=0.8']
-if sys.version_info < (2, 6):
-    requires.append('simplejson')
 
 setup(
     name='Flask-Fleem',
-    version=__version__,
-    url='http://',
+    version='0.0.4',
+    url='http://github.com/thrisp/fleem',
     license='MIT',
     author='thrisp/hurrata',
     author_email='blueblank@gmail.com',
-    description='Provides infrastructure for theming Flask applications',
+    description='Theming for Flask applications',
     long_description=__doc__,
     packages=['flask_fleem'],
     zip_safe=False,
     platforms='any',
-    install_requires=requires,
+    install_requires=['Flask>=0.9',
+                      'Flask-Assets>=0.8'],
     test_suite='nose.collector',
     tests_require=[
         'nose',

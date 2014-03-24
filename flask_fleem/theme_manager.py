@@ -9,6 +9,7 @@ from flask import current_app
 from flask.ext.assets import Environment
 from webassets.env import RegisterError
 
+
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
 
@@ -17,9 +18,7 @@ def starchain(i):
 
 
 def list_folders(path):
-    """
-    This is a helper function that only returns the directories in a given
-    folder.
+    """A helper function that only returns the directories in a given folder.
 
     :param path: The path to list directories in.
     """
@@ -28,9 +27,8 @@ def list_folders(path):
 
 
 def load_themes_from(path):
-    """
-    This is used by the default loaders. You give it a path, and it will find
-    valid themes and yield them one by one.
+    """Used by default loaders. Provide a path, and it will find valid themes,
+    yielding them one by one.
 
     :param path: The path to search for themes in.
     """
@@ -45,8 +43,7 @@ def load_themes_from(path):
 
 
 def packaged_themes_loader(app):
-    """
-    This theme will find themes that are shipped with the application. It will
+    """Finds themes that are shipped with the application. It will
     look in the application's root path for a ``themes`` directory - for
     example, the ``someapp`` package can ship themes in the directory
     ``someapp/themes/``.
@@ -59,17 +56,14 @@ def packaged_themes_loader(app):
 
 
 def theme_paths_loader(app):
-    """
-    This checks the app's `THEME_PATHS` configuration variable to find
+    """Checks the app's `THEME_PATHS` configuration variable to find
     directories that contain themes. The theme's identifier must match the
     name of its directory.
     """
     theme_paths = app.config.get('THEME_PATHS', ())
     if isinstance(theme_paths, str):
         theme_paths = [p.strip() for p in theme_paths.split(';')]
-    return starchain(
-        load_themes_from(path) for path in theme_paths
-    )
+    return starchain(load_themes_from(path) for path in theme_paths)
 
 
 class ThemeManager(object):
@@ -82,19 +76,18 @@ class ThemeManager(object):
     iterable of `Theme` instances. You can implement your own loaders if your
     app has another way to load themes.
 
-    :param app: The app to bind to. (Each instance is only usable for one
-                app.)
-    :param app_identifier: The value that the info.json's `application` key
-                           is required to have. If you require a more complex
-                           check, you can subclass and override the
-                           `valid_app_id` method.
+    :param app:     The app to bind to. (Each instance is only usable for one app.)
+    :param app_id:  The value that the info.yaml's `application` key
+                    is required to have. If you require a more complex
+                    check, you can subclass and override the
+                    `valid_app_id` method.
     :param loaders: An iterable of loaders to use. The defaults are
                     `packaged_themes_loader` and `theme_paths_loader`, in that
                     order.
     """
-    def __init__(self, app, app_identifier, loaders=None):
+    def __init__(self, app, app_id, loaders=None):
         self.app = app
-        self.app_identifier = app_identifier
+        self.app_id = app_id
         self._themes = None
         self.loaders = []
         if loaders:
@@ -127,7 +120,7 @@ class ThemeManager(object):
         """
         return sorted(iter(self.themes.values()), key=attrgetter('identifier'))
 
-    def valid_app_id(self, app_identifier):
+    def valid_app_id(self, app_id):
         """
         This checks whether the application identifier given will work with
         this application. The default implementation checks whether the given
@@ -135,14 +128,14 @@ class ThemeManager(object):
 
         :param app_identifier: The application identifier to check.
         """
-        return self.app_identifier == app_identifier
+        return self.app_id == app_id
 
     def register_theme_assets(self):
         try:
-            f = open(os.path.join(self.app.static_folder, "{}.manifest".format(self.app_identifier)), 'a')
+            f = open(os.path.join(self.app.static_folder, "{}.manifest".format(self.app_id)), 'a')
         except:
-            f = open(os.path.join(os.path.dirname(__file__), "{}.manifest".format(self.app_identifier)), 'a')
-            f.write(str( os.path.join(self.app.static_folder, "{}.manifest".format(self.app_identifier) )))
+            f = open(os.path.join(os.path.dirname(__file__), "{}.manifest".format(self.app_id)), 'a')
+            f.write(str( os.path.join(self.app.static_folder, "{}.manifest".format(self.app_id) )))
         extensions_filters = {'.css': 'cssmin', '.js': 'rjsmin'}
         for t in self.list_themes:
             for k,v in iter(extensions_filters.items()):
@@ -160,8 +153,7 @@ class ThemeManager(object):
         f.close()
 
     def refresh(self):
-        """
-        This loads all of the themes into the `themes` dictionary. The loaders
+        """Loads all of the themes into the `themes` dictionary. The loaders
         are invoked in the order they are given, so later themes will override
         earlier ones. Any invalid themes found (for example, if the
         application identifier is incorrect) will be skipped.

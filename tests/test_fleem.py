@@ -1,55 +1,35 @@
-"""
-test-themes.py
-==============
-This tests the Flask-Themes extension.
-"""
-
 from __future__ import with_statement
-import unittest
-
-import os
-from flask import Flask, url_for, render_template
-from flask.ext.fleem.fleem import (Fleem, static_file_url,
-    template_exists, render_theme_template, get_theme, get_themes_list)
-from flask.ext.fleem.theme import Theme
-from flask.ext.fleem.theme_manager import ThemeManager, packaged_themes_loader, theme_paths_loader, load_themes_from
-from jinja2 import FileSystemLoader
+from os.path import dirname, join, abspath
 from operator import attrgetter
+from flask import Flask, url_for, render_template
+from jinja2 import FileSystemLoader
 from flask.ext.assets import Bundle
 from webassets.env import RegisterError
+from flask_fleem.fleem import (Fleem, static_file_url,
+    template_exists, render_theme_template, get_theme, get_themes_list)
+from flask_fleem.theme import Theme
+from flask_fleem.theme_manager import ThemeManager, packaged_themes_loader, theme_paths_loader, load_themes_from
+from . import FleemTest
 
-TESTS = os.path.dirname(__file__)
-join = os.path.join
 
-
-class ThemeObjectCase(unittest.TestCase):
-    def setUp(self):
-        app = Flask(__name__)
-        Fleem(app)
-        self.app = app
-
+class TestThemeObject(FleemTest):
     def test_theme(self):
-        test_path = join(TESTS, 'themes', 'cool')
+        test_path = join(self.TESTS, 'themes', 'cool')
         cool = Theme(test_path)
         manifest, bundle = cool.return_bundle('.css', 'cssmin')
         self.assertEqual(cool.name, 'Cool Blue v1')
         self.assertEqual(cool.identifier, 'cool')
-        self.assertEqual(cool.path, os.path.abspath(test_path))
+        self.assertEqual(cool.path, abspath(test_path))
         self.assertEqual(cool.random_attribute, "totally random")
         self.assertEqual(cool.static_path, join(cool.path, 'static'))
         self.assertEqual(cool.templates_path, join(cool.path, 'templates'))
         self.assertIsInstance(cool.jinja_loader, FileSystemLoader)
         self.assertIsInstance(bundle, Bundle)
 
-class LoadersCase(unittest.TestCase):
-    def setUp(self):
-        app = Flask(__name__)
-        app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        Fleem(app)
-        self.app = app
 
+class TestLoaders(FleemTest):
     def test_load_themes_from(self):
-        test_path = join(TESTS, 'themes')
+        test_path = join(self.TESTS, 'themes')
         themes_iter = load_themes_from(test_path)
         themes = list(sorted(themes_iter, key=attrgetter('identifier')))
         self.assertEqual(themes[0].identifier, 'cool')
@@ -68,21 +48,15 @@ class LoadersCase(unittest.TestCase):
         self.assertEqual(themes[0].identifier, 'cool')
 
 
-class SetupCase(unittest.TestCase):
-    def setUp(self):
-        app = Flask(__name__)
-        app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        self.manager = ThemeManager(app, 'testing')
-        Fleem(app, app_identifier='testing')
-        self.app = app
-
+class TestSetup(FleemTest):
     def test_theme_manager(self):
+        manager = ThemeManager(self.app, 'testing')
         self.assertIsInstance(self.app.extensions['fleem_manager'], ThemeManager)
-        self.assertEqual(self.manager.themes['cool'].name, self.app.extensions['fleem_manager'].themes['cool'].name)
-        self.manager.refresh()
-        themeids = sorted(self.manager.themes.keys())
+        self.assertEqual(manager.themes['cool'].name, self.app.extensions['fleem_manager'].themes['cool'].name)
+        self.test_manager.refresh()
+        themeids = sorted(manager.themes.keys())
         self.assertEqual(themeids, ['cool', 'plain'])
-        self.assertEqual(self.manager.themes['cool'].name, 'Cool Blue v2')
+        self.assertEqual(manager.themes['cool'].name, 'Cool Blue v2')
 
     def test_setup_themes(self):
         self.assertTrue(self.app.extensions['fleem_manager'])
@@ -103,13 +77,7 @@ class SetupCase(unittest.TestCase):
                 get_theme('notthis')
 
 
-class StaticCase(unittest.TestCase):
-    def setUp(self):
-        app = Flask(__name__)
-        app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        Fleem(app, app_identifier='testing')
-        self.app = app
-
+class TestStatic(FleemTest):
     def test_static_file_url(self):
         with self.app.test_request_context('/'):
             url = static_file_url('cool', 'style.css')
@@ -118,13 +86,7 @@ class StaticCase(unittest.TestCase):
             self.assertEqual(url, genurl)
 
 
-class TemplatesCase(unittest.TestCase):
-    def setUp(self):
-        app = Flask(__name__)
-        app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        self.ft = Fleem(app, app_identifier='testing')
-        self.app = app
-
+class TestTemplates(FleemTest):
     def test_template_exists(self):
         with self.app.test_request_context('/'):
             self.assertTrue(template_exists('hello.html'))
@@ -132,8 +94,9 @@ class TemplatesCase(unittest.TestCase):
             self.assertFalse(template_exists('_themes/plain/hello.html'))
 
     def test_loader(self):
+        ft = self.app.blueprints['_themes']
         with self.app.test_request_context('/'):
-            src = self.ft._blueprint.jinja_loader.get_source(
+            src = ft.jinja_loader.get_source(
                 self.app.jinja_env, '_themes/cool/hello.html')
             self.assertEqual(src[0].strip(), 'Hello from Cool Blue v2.')
 
@@ -175,14 +138,3 @@ class TemplatesCase(unittest.TestCase):
             data = render_theme_template('cool', 'extending.html').strip()
             self.assertIsNotNone(data)
             self.assertEqual(data, 'hello I am theme_layout')
-
-
-def suite():
-    suite = unittest.TestSuite()
-    cases = (ThemeObjectCase, LoadersCase, SetupCase, StaticCase, TemplatesCase)
-    for c in cases:
-        suite.addTest(unittest.makeSuite(c))
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

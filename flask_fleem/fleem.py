@@ -1,28 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-flask.ext.fleem
-===============
-This provides infrastructure for theming support in your Flask applications.
-It takes care of:
+    flask.ext.fleem
+    ===============
+    This provides infrastructure for theming support in your Flask applications.
+    It takes care of:
 
-- Loading themes
-- Rendering their templates
-- Serving their static media
-- Letting themes reference their templates and static media
+    - Loading themes
+    - Rendering their templates
+    - Serving their static media
+    - Letting themes reference their templates and static media
 """
 from __future__ import with_statement
 
 from flask import (Blueprint, send_from_directory, render_template,
                    _app_ctx_stack, abort, url_for, current_app)
+
 from jinja2 import contextfunction
 from jinja2.loaders import TemplateNotFound
+
 from werkzeug import LocalProxy
 
 from .theme import Theme, ThemeTemplateLoader
 from .theme_manager import ThemeManager
 
 
-containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
+_containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
 
 
 _fleem = LocalProxy(lambda: current_app.extensions['fleem_manager'])
@@ -30,7 +32,7 @@ _fleem = LocalProxy(lambda: current_app.extensions['fleem_manager'])
 
 def get_theme(ident):
     """
-    This gets the theme with the given identifier from the current app's
+    Gets the theme with the given identifier from the current app's
     theme manager.
 
     :param ident: The theme identifier.
@@ -39,13 +41,13 @@ def get_theme(ident):
 
 def get_themes_list():
     """
-    This returns a list of all the themes in the current app's theme manager,
-    sorted by identifier.
+    Returns a list of all the themes in the current app's theme manager sorted
+    by identifier.
     """
     return list(_fleem.list_themes)
 
 def template_exists(templatename):
-    return templatename in containable(current_app.jinja_env.list_templates())
+    return templatename in _containable(current_app.jinja_env.list_templates())
 
 @contextfunction
 def global_theme_static(ctx, filename, external=False):
@@ -71,21 +73,21 @@ def active_theme(ctx):
 
 def static_file_url(theme, filename, external=False):
     """
-    This is a shortcut for getting the URL of a static file in a theme.
+    Returns the URL of a static file in a theme.
 
-    :param theme: A `Theme` instance or identifier.
-    :param filename: The name of the file.
-    :param external: Whether the link should be external or not. Defaults to
-                     `False`.
+    :param theme:     A `Theme` instance or identifier
+    :param filename:  The name of the file
+    :param external:  whether the link should be external. Defaults to `False`.
     """
     if isinstance(theme, Theme):
         theme = theme.identifier
-    return url_for('_themes.static', themeid=theme, filename=filename,
-                   _external=external)
+    return url_for('_themes.static', themeid=theme, filename=filename, _external=external)
 
 def render_theme_template(theme, template_name, _fallback=True, **context):
     """
-    This renders a template from the given theme. For example::
+    Renders a template from the given theme.
+
+    e.g.::
 
         return render_theme_template(g.user.theme, 'index.html', posts=posts)
 
@@ -94,35 +96,44 @@ def render_theme_template(theme, template_name, _fallback=True, **context):
     normal templates. (The "active theme" will still be set, though, so you
     can try to extend or include other templates from the theme.)
 
-    :param theme: Either the identifier of the theme to use, or an actual
-                  `Theme` instance.
+    :param theme:         Either the identifier of the theme to use, or an actual
+                          `Theme` instance.
     :param template_name: The name of the template to render.
-    :param _fallback: Whether to fall back to the default
+    :param _fallback:     Whether to fall back to the default
     """
     if isinstance(theme, Theme):
         theme = theme.identifier
+
     context['_theme'] = theme
+
     try:
-        return render_template('_themes/{}/{}'.format(theme, template_name),
-                               **context)
+        return render_template('_themes/{}/{}'.format(theme, template_name), **context)
     except TemplateNotFound:
         if _fallback:
             return render_template(template_name, **context)
         else:
             raise
 
+def theme_static_resources(themeid, filename):
+    try:
+        theme = _fleem.themes[themeid]
+    except KeyError:
+        abort(404)
+    return send_from_directory(theme.static_path, filename)
+
 
 class Fleem(object):
     """
-    :param app: The `flask.Flask` instance to set up themes for.
-    :param loaders: An iterable of loaders to use. It defaults to
-                    `packaged_themes_loader` and `theme_paths_loader`.
-    :param app_identifier: The application identifier to use. If not given,
-                        it defaults to the app's import name.
-    :param manager_cls: If you need a custom manager class, you can pass it
-                        in here.
+    The primary extension class.
+
+    :param app:              The `flask.Flask` instance to set up themes for.
+    :param loaders:          An iterable of loaders to use. Defaults to
+                             `packaged_themes_loader` and `theme_paths_loader`.
+    :param app_identifier:   The application identifier to use. If not given,
+                             defaults to the app's import name.
+    :param manager_cls:      If you need a custom manager class, default is ThemeManager
     :param theme_url_prefix: The prefix to use for the URLs on the themes
-                            module. (Defaults to ``/_themes``.)
+                             module. (Defaults to ``/_themes``.)
     """
     def __init__(self, app=None,
                        loaders=None,
@@ -143,7 +154,6 @@ class Fleem(object):
         else:
             self.app = None
 
-
     def init_app(self, app, app_identifier, manager_class, loaders):
         if app_identifier is None:
             app_identifier = app.import_name
@@ -156,16 +166,9 @@ class Fleem(object):
         app.extensions['fleem_manager'] = theme_manager
         return theme_manager
 
-
     @property
     def _blueprint(self):
         themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
         themes_blueprint.jinja_loader = ThemeTemplateLoader()
-        def static(themeid, filename):
-            try:
-                theme = _fleem.themes[themeid]
-            except KeyError:
-                abort(404)
-            return send_from_directory(theme.static_path, filename)
-        themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
+        themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=theme_static_resources)
         return themes_blueprint
