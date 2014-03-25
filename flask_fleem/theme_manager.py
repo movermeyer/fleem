@@ -2,7 +2,6 @@ from itertools import chain
 from operator import attrgetter
 import os
 import re
-from time import time
 
 from .theme import Theme
 from flask import current_app
@@ -76,16 +75,19 @@ class ThemeManager(object):
     iterable of `Theme` instances. You can implement your own loaders if your
     app has another way to load themes.
 
-    :param app:     The app to bind to. (Each instance is only usable for one app.)
+    :param app:     The app to bind to.
     :param app_id:  The value that the info.yaml's `application` key
                     is required to have. If you require a more complex
                     check, you can subclass and override the
                     `valid_app_id` method.
-    :param loaders: An iterable of loaders to use. The defaults are
+    :param loaders: An list of loaders to use. The defaults are
                     `packaged_themes_loader` and `theme_paths_loader`, in that
                     order.
+    :kwarg log:     boolean to log refresh & bundle events to app, defaults True
     """
-    def __init__(self, app, app_id, loaders=None):
+    extensions_filters = {'.css': 'cssmin', '.js': 'rjsmin'}
+
+    def __init__(self, app, app_id, loaders=None, **kwargs):
         self.app = app
         self.app_id = app_id
         self._themes = None
@@ -95,6 +97,7 @@ class ThemeManager(object):
         else:
             self.loaders.extend((packaged_themes_loader, theme_paths_loader))
         self.asset_env = self.set_asset_env()
+        self.log = kwargs.pop('log', True)
         self.refresh()
 
     def set_asset_env(self):
@@ -126,21 +129,16 @@ class ThemeManager(object):
         this application. The default implementation checks whether the given
         identifier matches the one given at initialization.
 
-        :param app_identifier: The application identifier to check.
+        :param app_id: The application identifier to check.
         """
         return self.app_id == app_id
 
     def register_theme_assets(self):
-        try:
-            f = open(os.path.join(self.app.static_folder, "{}.manifest".format(self.app_id)), 'a')
-        except:
-            f = open(os.path.join(os.path.dirname(__file__), "{}.manifest".format(self.app_id)), 'a')
-            f.write(str( os.path.join(self.app.static_folder, "{}.manifest".format(self.app_id) )))
-        extensions_filters = {'.css': 'cssmin', '.js': 'rjsmin'}
         for t in self.list_themes:
-            for k,v in iter(extensions_filters.items()):
+            for k,v in iter(self.extensions_filters.items()):
                 manifest_entry, bundle = t.return_bundle(k,v)
-                f.write("{} :: {}\n".format(time(), str(manifest_entry)))
+                if self.log:
+                    self.app.logger.info("{}".format(manifest_entry))
                 if bundle:
                     bundle_name = "{}_{}".format(t.identifier, k[1:])
                     if bundle_name in self.asset_env:
@@ -150,7 +148,6 @@ class ThemeManager(object):
                             self.asset_env.register(bundle_name, bundle)
                         except RegisterError as e:
                             raise e
-        f.close()
 
     def refresh(self):
         """Loads all of the themes into the `themes` dictionary. The loaders
