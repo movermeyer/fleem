@@ -20,25 +20,24 @@ class Theme(object):
         with open(os.path.join(self.path, 'info.yaml')) as fd:
             self.info = i = yaml.load(fd)
 
-        if not all(k in i for k in ('name', 'application', 'identifier')):
+        if not all(k in i for k in ('name', 'identifier', 'application')):
             raise AttributeError("""
                                  Theme configuration MUST contain:\n
-                                 - name\n
-                                 - application\n
-                                 - identifier\n
-                                 theme configuration contained:
-                                 {}
+                                 - theme name\n
+                                 - theme identifier\n
+                                 - application identifier\n
+                                 theme configuration contained:{i}
                                  """).format(i)
 
         # The theme's human readable name, as given in info.yaml.
-        self.name = i.pop('name', 'No name provided')
-
-        # The application name given in the theme's info.yaml.
-        self.application = i.pop('application', 'No application provided')
+        self.name = i.pop('name')
 
         # The theme's identifier. In most situations should match the name of
         # the directory the theme is in.
-        self.identifier = i.pop('identifier', 'No identifier provided')
+        self.identifier = i.pop('identifier')
+
+        # The application name to associate them with application.
+        self.application = i.pop('application')
 
         for k,v in iter(i.items()):
             setattr(self, k, v)
@@ -79,9 +78,11 @@ class Theme(object):
         resources = self.theme_files_of(extension)
         if resources:
             manifest = "{} for theme {} == {}".format(extension, self.name, [r for r in resources])
-            return manifest, Bundle(*resources, output=resource_tag, filters=resource_filter)
+            bundle = Bundle(*resources, output=resource_tag, filters=resource_filter)
         else:
-            return "No {} resources for {}".format(extension, self.name), None
+            manifest = "No {} resources for {}".format(extension, self.name)
+            bundle = None
+        return manifest, bundle
 
     @cached_property
     def static_path(self):

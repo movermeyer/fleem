@@ -121,7 +121,7 @@ class ThemeManager(object):
         """
         This yields all the `Theme` objects, in sorted order.
         """
-        return sorted(iter(self.themes.values()), key=attrgetter('identifier'))
+        return sorted(self.themes.values(), key=attrgetter('identifier'))
 
     def valid_app_id(self, app_id):
         """
@@ -135,7 +135,7 @@ class ThemeManager(object):
 
     def register_theme_assets(self):
         for t in self.list_themes:
-            for k,v in iter(self.extensions_filters.items()):
+            for k,v in self.extensions_filters.items():
                 manifest_entry, bundle = t.return_bundle(k,v)
                 if self.log:
                     self.app.logger.info("{}".format(manifest_entry))
