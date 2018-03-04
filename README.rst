@@ -3,15 +3,15 @@ Fleem
 
 .. image:: https://secure.travis-ci.org/thrisp/flask-fleem.png?branch=develop
 
-.. image:: https://pypip.in/v/Flask-Fleem/badge.png
+.. image:: https://img.shields.io/pypi/v/Flask-Fleem.svg
     :target: https://pypi.python.org/pypi/Flask-Fleem/
     :alt: Latest Version
 
-.. image:: https://pypip.in/d/Flask-Fleem/badge.png
+.. image:: https://img.shields.io/pypi/dm/Flask-Fleem.svg
     :target: https://pypi.python.org/pypi//Flask-Fleem/
     :alt: Downloads
 
-.. image:: https://pypip.in/license/Flask-Fleem/badge.png
+.. image:: https://img.shields.io/pypi/l/Flask-Fleem.svg
     :target: https://pypi.python.org/pypi/Flask-Fleem/
     :alt: License
 
